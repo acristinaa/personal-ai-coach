@@ -4,8 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { InputSection } from "@/components/ui/input-section"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Phone, Shield } from "lucide-react"
 
@@ -102,7 +101,7 @@ export default function Component() {
             <form onSubmit={handlePhoneSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone number</Label>
-                <Input
+                <InputSection
                   id="phone"
                   type="tel"
                   placeholder="(555) 123-4567"
@@ -121,7 +120,7 @@ export default function Component() {
             <form onSubmit={handleVerifySubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="code">Verification code</Label>
-                <Input
+                <InputSection
                   id="code"
                   type="text"
                   placeholder="123456"
