@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { InputSection } from "@/components/ui/input-section"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Phone, Shield } from "lucide-react"
 
@@ -104,7 +105,7 @@ export default function Component() {
                 <InputSection
                   id="phone"
                   type="tel"
-                  placeholder="(555) 123-4567"
+                  placeholder="0123 4567890"
                   value={phoneNumber}
                   onChange={handlePhoneChange}
                   className="text-lg"
