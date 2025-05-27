@@ -4,12 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { InputSection } from "@/components/ui/input-section"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Phone, Shield } from "lucide-react"
+import { Phone, Shield } from "lucide-react"
+import { AuthCard } from "@/components/auth-card"
+import { PhoneNumberInput } from "@/components/phone-number-input"
+import { VerificationCodeInput } from "@/components/verification-code-input"
 
-export default function Component() {
+
+export default function PhoneSignup() {
   const [step, setStep] = useState<"phone" | "verify">("phone")
   const [phoneNumber, setPhoneNumber] = useState("")
   const [verificationCode, setVerificationCode] = useState("")
@@ -53,14 +55,14 @@ export default function Component() {
     console.log("Verification successful!")
   }
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value)
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhoneNumber(value)
     setPhoneNumber(formatted)
   }
 
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 6)
-    setVerificationCode(value)
+  const handleCodeChange = (value: string) => {
+    const formatted = value.replace(/\D/g, "").slice(0, 6)
+    setVerificationCode(formatted)
   }
 
   const resendCode = async () => {
@@ -72,91 +74,48 @@ export default function Component() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          {step === "verify" && (
-            <Button variant="ghost" size="sm" className="absolute left-4 top-4" onClick={() => setStep("phone")}>
-              <ArrowLeft className="h-4 w-4" />
+      <AuthCard
+        title={step === "phone" ? "mit Telefon anmelden" : "Prüfen Sie Ihre Nummer"}
+        description={step === "phone" ? "Geben Sie Ihre Telefonnummer ein, um loszulegen" : `Wir haben einen 6-stelligen Code an ${phoneNumber}`}
+        icon={step === "phone" ? <Phone className="h-6 w-6 text-blue-600" /> : <Shield className="h-6 w-6 text-blue-600" />}
+        onBack={step === "verify" ? () => setStep("phone") : undefined}
+      >
+        {step === "phone" ? (
+          <form onSubmit={handlePhoneSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefonnummer</Label>
+              <PhoneNumberInput
+                value={phoneNumber}
+                onChange={handlePhoneChange}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={phoneNumber.length < 14 || isLoading}>
+              {isLoading ? "Code senden..." : "Verifizierungscode senden"}
             </Button>
-          )}
-
-          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            {step === "phone" ? (
-              <Phone className="h-6 w-6 text-blue-600" />
-            ) : (
-              <Shield className="h-6 w-6 text-blue-600" />
-            )}
-          </div>
-
-          <CardTitle className="text-2xl font-bold">
-            {step === "phone" ? "Sign up with phone" : "Verify your number"}
-          </CardTitle>
-
-          <CardDescription>
-            {step === "phone" ? "Enter your phone number to get started" : `We sent a 6-digit code to ${phoneNumber}`}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          {step === "phone" ? (
-            <form onSubmit={handlePhoneSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone number</Label>
-                <InputSection
-                  id="phone"
-                  type="tel"
-                  placeholder="0123 4567890"
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  className="text-lg"
-                  required
-                />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={phoneNumber.length < 14 || isLoading}>
-                {isLoading ? "Sending code..." : "Send verification code"}
+          </form>
+        ) : (
+          <form onSubmit={handleVerifySubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="code">Verifizierungscode</Label>
+              <VerificationCodeInput
+                value={verificationCode}
+                onChange={handleCodeChange}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={verificationCode.length !== 6 || isLoading}>
+              {isLoading ? "Verifizieren..." : "Verifizieren und fortfahren"}
+            </Button>
+            <div className="text-center">
+              <Button type="button" variant="link" onClick={resendCode} disabled={isLoading} className="text-sm">
+                {"Kein Code erhalten? Code erneut senden"}
               </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifySubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">Verification code</Label>
-                <InputSection
-                  id="code"
-                  type="text"
-                  placeholder="123456"
-                  value={verificationCode}
-                  onChange={handleCodeChange}
-                  className="text-lg text-center tracking-widest"
-                  maxLength={6}
-                  required
-                />
-              </div>
-
-              <Button type="submit" className="w-full" disabled={verificationCode.length !== 6 || isLoading}>
-                {isLoading ? "Verifying..." : "Verify and continue"}
-              </Button>
-
-              <div className="text-center">
-                <Button type="button" variant="link" onClick={resendCode} disabled={isLoading} className="text-sm">
-                  {"Didn't receive a code? Resend"}
-                </Button>
-              </div>
-            </form>
-          )}
-
-          <div className="text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{" "}
-            <a href="#" className="underline hover:text-foreground">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="#" className="underline hover:text-foreground">
-              Privacy Policy
-            </a>
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </form>
+        )}
+        {/* <TermsAndPrivacy /> */}
+      </AuthCard>
     </div>
   )
 }
