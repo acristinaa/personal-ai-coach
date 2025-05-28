@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     if (!phoneNumber) {
       return NextResponse.json(
-        { error: "Phone number is required" },
+        { error: "Telefonnummer ist erforderlich" },
         { status: 400 }
       );
     }
@@ -31,32 +31,38 @@ export async function POST(request: NextRequest) {
 
     // Format phone number for WhatsApp
     const cleanNumber = phoneNumber.replace(/\s/g, "");
-    const whatsappNumber = `whatsapp:${cleanNumber.startsWith('+') ? cleanNumber : '+49' + cleanNumber}`;
+    const whatsappNumber = `whatsapp:${
+      cleanNumber.startsWith("+") ? cleanNumber : "+49" + cleanNumber
+    }`;
 
     // Add user to registered users
     registeredUsers.add(whatsappNumber);
 
     // Add this debug code before the message creation
-    console.log('Debug - Twilio Account Info:');
-    console.log('Account SID:', process.env.TWILIO_ACCOUNT_SID);
-    console.log('WhatsApp Number:', process.env.TWILIO_WHATSAPP_NUMBER);
-    
+    console.log("Debug - Twilio Account Info:");
+    console.log("Account SID:", process.env.TWILIO_ACCOUNT_SID);
+    console.log("WhatsApp Number:", process.env.TWILIO_WHATSAPP_NUMBER);
+
     // Test if we can access the account
     try {
       if (process.env.TWILIO_ACCOUNT_SID) {
-        const account = await twilioClient.api.accounts(process.env.TWILIO_ACCOUNT_SID).fetch();
-        console.log('Account status:', account.status);
+        const account = await twilioClient.api
+          .accounts(process.env.TWILIO_ACCOUNT_SID)
+          .fetch();
+        console.log("Account status:", account.status);
       } else {
-        console.log('TWILIO_ACCOUNT_SID not set');
+        console.log("TWILIO_ACCOUNT_SID not set");
       }
     } catch (err) {
-      console.log('Account access error:', err);
+      console.log("Account access error:", err);
     }
 
     // Send welcome message via WhatsApp
-    const welcomeMessage = `🤖 Willkommen bei Personal AI Coach, ${name || 'there'}!
+    const welcomeMessage = `🤖 Willkommen bei Personal AI Coach, ${
+      name || "there"
+    }!
 
-Ich bin Alex, Ihr persönlicher KI-Coach. Ich helfe Ihnen bei:
+Ich bin Ihr persönlicher AI-Coach. Ich kann Ihnen helfen bei:
 • Zielsetzung und Zielerreichung
 • Motivation und Verantwortlichkeit
 • Persönliche Entwicklung
@@ -67,7 +73,9 @@ Schreiben Sie mir einfach eine Nachricht und lassen Sie uns anfangen! 💪
 
 Was möchten Sie heute erreichen?`;
 
-    console.log(`Attempting to send message from: ${process.env.TWILIO_WHATSAPP_NUMBER} to: ${whatsappNumber}`);
+    console.log(
+      `Attempting to send message from: ${process.env.TWILIO_WHATSAPP_NUMBER} to: ${whatsappNumber}`
+    );
 
     await twilioClient.messages.create({
       body: welcomeMessage,
@@ -77,24 +85,33 @@ Was möchten Sie heute erreichen?`;
 
     console.log(`Sent welcome message to ${whatsappNumber}`);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: "Registration successful! Check WhatsApp for your welcome message."
+      message:
+        "Registrierung erfolgreich! Überprüfen Sie WhatsApp für Ihre Willkommensnachricht.",
     });
   } catch (error) {
     console.error("Error registering user:", error);
-    
+
     // More specific error handling for Twilio errors
-    if (error && typeof error === 'object' && 'code' in error && error.code === 63007) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === 63007
+    ) {
       return NextResponse.json(
-        { error: "WhatsApp configuration error. Please contact support." },
+        {
+          error:
+            "WhatsApp-Konfigurationsfehler. Bitte kontaktieren Sie den Support.",
+        },
         { status: 500 }
       );
     }
-    
+
     return NextResponse.json(
       { error: "Failed to register user" },
       { status: 500 }
     );
   }
-} 
+}

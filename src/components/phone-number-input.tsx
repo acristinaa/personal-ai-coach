@@ -11,7 +11,7 @@ interface PhoneNumberInputProps {
   export function PhoneNumberInput({
     value,
     onChange,
-    placeholder = "0123 4567890",
+    placeholder = "0123 456 78910",
     required,
     className
   }: PhoneNumberInputProps) {

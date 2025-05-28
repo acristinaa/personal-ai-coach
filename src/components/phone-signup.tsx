@@ -81,7 +81,7 @@ export default function PhoneSignup() {
       <div className="flex flex-col items-center">
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800">Willkommen bei Personal AI Coach</h1>
-          <p className="text-gray-600 mt-2">florezko</p>
+         {/* <p className="text-gray-600 mt-2">florezko</p> */}
         </div>
         
         {step === "signup" ? (
