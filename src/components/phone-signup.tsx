@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Phone, MessageCircle, CheckCircle } from "lucide-react"
 import { AuthCard } from "@/components/auth-card"
 import { PhoneNumberInput } from "@/components/phone-number-input"
-import Link from "next/link"
 
 export default function PhoneSignup() {
   const [step, setStep] = useState<"signup" | "success">("signup")
@@ -127,12 +126,6 @@ export default function PhoneSignup() {
               >
                 {isLoading ? "Registrierung..." : "Mit AI Coach starten"}
               </Button>
-
-              <div className="text-center">
-                <Link href="/already-registered" className="text-sm text-blue-600 hover:underline">
-                  Bereits registriert? Hier überprüfen
-                </Link>
-              </div>
             </form>
           </AuthCard>
         ) : (
