@@ -1,10 +1,10 @@
 import Component from "@/components/phone-signup"
-import { AlreadyRegistered } from "@/components/already-registered"
+//import { AlreadyRegistered } from "@/components/already-registered"
 
 export default function Page() {
   return <Component />
 }
 
-export function AlreadyRegisteredPage() {
+{/*export function AlreadyRegisteredPage() {
   return <AlreadyRegistered />
-}
+}*/}
