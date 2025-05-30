@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
+import { supabase } from "@/lib/supabase";
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
-
-// Store registered users (use a database in production)
-const registeredUsers = new Set<string>();
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +14,13 @@ export async function POST(request: NextRequest) {
     if (!phoneNumber) {
       return NextResponse.json(
         { error: "Telefonnummer ist erforderlich" },
+        { status: 400 }
+      );
+    }
+
+    if (!name?.trim()) {
+      return NextResponse.json(
+        { error: "Name ist erforderlich" },
         { status: 400 }
       );
     }
@@ -31,36 +36,52 @@ export async function POST(request: NextRequest) {
 
     // Format phone number for WhatsApp
     const cleanNumber = phoneNumber.replace(/\s/g, "");
-    const whatsappNumber = `whatsapp:${
-      cleanNumber.startsWith("+") ? cleanNumber : "+49" + cleanNumber
-    }`;
+    const formattedPhoneNumber = cleanNumber.startsWith("+") ? cleanNumber : "+49" + cleanNumber;
+    const whatsappNumber = `whatsapp:${formattedPhoneNumber}`;
 
-    // Add user to registered users
-    registeredUsers.add(whatsappNumber);
+    // Check if user already exists
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone_number', formattedPhoneNumber)
+      .single();
 
-    // Add this debug code before the message creation
-    console.log("Debug - Twilio Account Info:");
-    console.log("Account SID:", process.env.TWILIO_ACCOUNT_SID);
-    console.log("WhatsApp Number:", process.env.TWILIO_WHATSAPP_NUMBER);
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "not found"
+      console.error('Database error:', fetchError);
+      return NextResponse.json(
+        { error: "Database error occurred" },
+        { status: 500 }
+      );
+    }
 
-    // Test if we can access the account
-    try {
-      if (process.env.TWILIO_ACCOUNT_SID) {
-        const account = await twilioClient.api
-          .accounts(process.env.TWILIO_ACCOUNT_SID)
-          .fetch();
-        console.log("Account status:", account.status);
-      } else {
-        console.log("TWILIO_ACCOUNT_SID not set");
-      }
-    } catch (err) {
-      console.log("Account access error:", err);
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "Diese Telefonnummer ist bereits registriert" },
+        { status: 400 }
+      );
+    }
+
+    // Insert new user into database
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        phone_number: formattedPhoneNumber,
+        name: name.trim(),
+        whatsapp_number: whatsappNumber
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Failed to insert user:', insertError);
+      return NextResponse.json(
+        { error: "Failed to register user" },
+        { status: 500 }
+      );
     }
 
     // Send welcome message via WhatsApp
-    const welcomeMessage = `🤖 Willkommen bei Personal AI Coach, ${
-      name || "there"
-    }!
+    const welcomeMessage = `🤖 Willkommen bei Personal AI Coach, ${name}!
 
 Ich bin Ihr persönlicher AI-Coach. Ich kann Ihnen helfen bei:
 • Zielsetzung und Zielerreichung
@@ -83,13 +104,14 @@ Was möchten Sie heute erreichen?`;
       to: whatsappNumber,
     });
 
-    console.log(`Sent welcome message to ${whatsappNumber}`);
+    console.log(`Sent welcome message to ${whatsappNumber} for user ${newUser.id}`);
 
     return NextResponse.json({
       success: true,
-      message:
-        "Registrierung erfolgreich! Überprüfen Sie WhatsApp für Ihre Willkommensnachricht.",
+      message: "Registrierung erfolgreich! Überprüfen Sie WhatsApp für Ihre Willkommensnachricht.",
+      userId: newUser.id
     });
+
   } catch (error) {
     console.error("Error registering user:", error);
 
@@ -102,8 +124,7 @@ Was möchten Sie heute erreichen?`;
     ) {
       return NextResponse.json(
         {
-          error:
-            "WhatsApp-Konfigurationsfehler. Bitte kontaktieren Sie den Support.",
+          error: "WhatsApp-Konfigurationsfehler. Bitte kontaktieren Sie den Support.",
         },
         { status: 500 }
       );

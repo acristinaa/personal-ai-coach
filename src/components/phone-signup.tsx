@@ -47,7 +47,7 @@ export default function PhoneSignup() {
         },
         body: JSON.stringify({ 
           phoneNumber: internationalNumber,
-          name: name.trim() || undefined
+          name: name.trim()
         }),
       })
 
@@ -92,13 +92,14 @@ export default function PhoneSignup() {
           >
             <form onSubmit={handleSignupSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name (optional)</Label>
+                <Label htmlFor="name">Name</Label>
                 <input
                   id="name"
                   type="text"
                   value={name}
                   onChange={handleNameChange}
                   placeholder="Ihr Name"
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -121,7 +122,7 @@ export default function PhoneSignup() {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={phoneNumber.length < 14 || isLoading}
+                disabled={phoneNumber.length < 14 || !name.trim() || isLoading}
               >
                 {isLoading ? "Registrierung..." : "Mit AI Coach starten"}
               </Button>
